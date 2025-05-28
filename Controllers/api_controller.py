@@ -5,6 +5,7 @@ from tenacity import retry, wait_random_exponential, stop_after_attempt
 from Business.api_business import hello_world_method, validate_method, env_var_method
 from Utils.logger import LocalLogger
 from Utils.error_handle import ApiControllerError
+from Entities.QueryModel import QueryModel
 
 
 
@@ -73,18 +74,10 @@ async def env_var():
 
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(5))
 @router.post("/validate")
-async def validate(request: Request):
+async def validate(query: QueryModel):
     try:
-        # Get query
-        data = await request.json()
-        param1 = data.get('param1', '')
-        param2 = data.get('param2', '')
-
-        if not param1:
-            raise HTTPException(status_code=400, detail="param1 is missing!")
-
         # Send query to business logic
-        response = await validate_method(logger, param1)
+        response = await validate_method(logger, query.param1)
         logger.info(f'The response is:\n {response.success} and its status code is {response.status_code} and its message is {response.message}')
 
         return response.to_dict()
